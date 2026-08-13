@@ -1,6 +1,6 @@
 # 📄 Markdown File Viewer
 
-![Version](https://img.shields.io/badge/version-1.2.0-blue)
+![Version](https://img.shields.io/badge/version-1.3.0-blue)
 ![Java](https://img.shields.io/badge/Java-17%2B-orange)
 ![JavaFX](https://img.shields.io/badge/JavaFX-21-green)
 ![License](https://img.shields.io/badge/license-MIT-purple)
@@ -21,14 +21,15 @@ A sleek, fast, and beautiful **JavaFX desktop application** for reading and navi
 - 🎨 **GitHub-styled rendering** — clean, beautiful Markdown output
 - 🌙 **Dark sidebar UI** — modern Catppuccin-inspired theme
 - ✕ **Close individual files** from the sidebar
-- ⬆⬇ **Navigate search matches** forward & backward inside documents
+- 🖼️ **Emoji & image rendering** — locally bundled Twemoji SVGs and embedded images display correctly in WebView
+- 📸 **Local image support** — relative paths like `image.png` in markdown resolve and render inline
 
 ---
 
 ## 🖥️ Screenshots
 
-> *(Add screenshots here after first run)*
-![alt text](image.png)
+![README rendered in the app](image2.png)
+
 ---
 
 ## 🛠️ Tech Stack
@@ -38,6 +39,7 @@ A sleek, fast, and beautiful **JavaFX desktop application** for reading and navi
 | Java 17+ | Core language |
 | JavaFX 21 | UI framework |
 | CommonMark | Markdown parsing |
+| Twemoji (local) | Emoji SVG assets bundled with the app |
 | NetBeans | IDE / Build tool |
 
 ---
@@ -68,6 +70,8 @@ A sleek, fast, and beautiful **JavaFX desktop application** for reading and navi
 4. **Run:**
    - Press `F6` or click the Run button
 
+> **Emoji assets:** Twemoji SVGs are bundled under `src/markdownviewer/emojis/`. To refresh them, run `download_emojis.ps1` from the project root.
+
 ---
 
 ## ⌨️ Keyboard Shortcuts
@@ -87,8 +91,12 @@ A sleek, fast, and beautiful **JavaFX desktop application** for reading and navi
 MarkdownApp/
 ├── src/
 │   └── markdownviewer/
-│       └── MarkdownViewer.java   # Main application
+│       ├── MarkdownViewer.java   # Main application
+│       └── emojis/               # Bundled Twemoji SVG assets
 ├── lib/                          # CommonMark JAR dependencies
+├── download_emojis.ps1           # Script to download Twemoji SVGs
+├── image.png                     # Screenshot assets for README
+├── image2.png
 ├── nbproject/                    # NetBeans project config
 ├── build.xml                     # Ant build file
 └── README.md
@@ -117,6 +125,7 @@ git push
 
 - [commonmark-java](https://github.com/commonmark/commonmark-java) — Markdown parser
 - [commonmark-ext-gfm-tables](https://github.com/commonmark/commonmark-java) — GitHub Flavored Markdown tables
+- [Twemoji](https://github.com/twitter/twemoji) — Emoji SVG assets (v14.0.2, bundled locally)
 
 ---
 
@@ -134,11 +143,16 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ## 🕓 Latest Changes
 
+### v1.3.0 — 2026-08-13
+- 🖼️ Fixed emoji rendering — Twemoji SVGs bundled locally and embedded as data URIs in WebView
+- 📸 Fixed local screenshots/images — relative paths like `image.png` now render correctly
+- ✕ Fixed close icon (U+2715) showing as a broken image in rendered markdown
+- 📷 Added README screenshots section with two app screenshots
+
 ### v1.2.0 — 2026-08-13
 - 🔎 In-document search bar with ▲ ▼ navigation and Ctrl+F shortcut
 - ✕ Close & 🔍 reopen search icon button
 - ✕ Clear button inside sidebar file search
-- 🖼️ Fixed emoji rendering in WebView (Segoe UI Emoji font)
 
 ### v1.1.0 — 2026-08-13
 - 🔍 Sidebar search to filter open files by name

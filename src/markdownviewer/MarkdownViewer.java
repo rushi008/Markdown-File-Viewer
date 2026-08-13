@@ -34,9 +34,14 @@ import org.commonmark.Extension;
 import org.commonmark.node.Node;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
@@ -45,6 +50,9 @@ public class MarkdownViewer extends Application {
     private Stage primaryStage;
     private Parser parser;
     private HtmlRenderer renderer;
+
+    /** Cache of Twemoji SVG data URIs so each emoji is read from disk at most once. */
+    private final Map<String, String> emojiDataUriCache = new HashMap<>();
 
     private ObservableList<File> openFiles;
     private ListView<File> fileListView;
@@ -312,13 +320,23 @@ public class MarkdownViewer extends Application {
             Node document = parser.parse(content);
             String html = renderer.render(document);
 
-            String styledHtml = "<!DOCTYPE html><html><head><meta charset='utf-8'><title>" + file.getName() + "</title><style>" +
-                    "body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji',Helvetica,Arial,sans-serif; line-height: 1.6; color: #24292e; padding: 32px 40px; max-width: 900px; margin: 0 auto; background-color: #ffffff; }" +
+            // Base URL so relative images (e.g. image.png) resolve against the markdown file's folder
+            String baseTag = "";
+            File parent = file.getParentFile();
+            if (parent != null) {
+                baseTag = "<base href=\"" + parent.toURI().toString() + "\">";
+            }
+
+            String styledHtml = "<!DOCTYPE html><html><head><meta charset='utf-8'>" + baseTag +
+                    "<title>" + file.getName() + "</title>" +
+                    "<style>" +
+                    "body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; line-height: 1.6; color: #24292e; padding: 32px 40px; max-width: 900px; margin: 0 auto; background-color: #ffffff; }" +
                     "h1, h2, h3 { border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; margin-top: 24px; margin-bottom: 16px; font-weight: 600; }" +
                     "h1 { font-size: 2em; } h2 { font-size: 1.5em; } h3 { font-size: 1.25em; }" +
                     "p { margin-top: 0; margin-bottom: 16px; }" +
                     "ul, ol { padding-left: 2em; margin-bottom: 16px; }" +
                     "li { margin-bottom: 4px; }" +
+                    "img.emoji { height: 1.2em; width: 1.2em; vertical-align: -0.2em; display: inline-block; margin: 0 0.05em 0 0.05em; }" +
                     "table { border-collapse: collapse; width: 100%; margin-bottom: 16px; }" +
                     "table, th, td { border: 1px solid #dfe2e5; }" +
                     "th, td { padding: 6px 13px; }" +
@@ -330,9 +348,9 @@ public class MarkdownViewer extends Application {
                     "blockquote { padding: 0 1em; color: #6a737d; border-left: 0.25em solid #dfe2e5; margin: 0 0 16px 0; }" +
                     "a { color: #0366d6; text-decoration: none; }" +
                     "a:hover { text-decoration: underline; }" +
-                    "img { max-width: 100%; }" +
+                    "img:not(.emoji) { max-width: 100%; }" +
                     "hr { height: 0.25em; padding: 0; margin: 24px 0; background-color: #e1e4e8; border: 0; border-radius: 3px; }" +
-                    "</style></head><body>" + html + "</body></html>";
+                    "</style></head><body>" + resolveLocalImages(processEmojis(html), file) + "</body></html>";
 
             WebView webView = new WebView();
             WebEngine engine = webView.getEngine();
@@ -418,6 +436,201 @@ public class MarkdownViewer extends Application {
         }
     }
 
+
+    /**
+     * Embeds local images as data URIs so they display in WebView loaded via loadContent().
+     * Relative paths are resolved against the markdown file's directory.
+     */
+    private String resolveLocalImages(String html, File markdownFile) {
+        File baseDir = markdownFile.getParentFile();
+        if (baseDir == null) {
+            return html;
+        }
+
+        StringBuilder result = new StringBuilder();
+        int i = 0;
+        while (i < html.length()) {
+            int imgStart = html.indexOf("<img", i);
+            if (imgStart < 0) {
+                result.append(html.substring(i));
+                break;
+            }
+
+            result.append(html, i, imgStart);
+            int tagEnd = html.indexOf('>', imgStart);
+            if (tagEnd < 0) {
+                result.append(html.substring(imgStart));
+                break;
+            }
+
+            String imgTag = html.substring(imgStart, tagEnd + 1);
+            result.append(rewriteImgSrc(imgTag, baseDir));
+            i = tagEnd + 1;
+        }
+        return result.toString();
+    }
+
+    private String rewriteImgSrc(String imgTag, File baseDir) {
+        int srcIdx = imgTag.indexOf("src=\"");
+        if (srcIdx < 0) {
+            srcIdx = imgTag.indexOf("src='");
+            if (srcIdx < 0) {
+                return imgTag;
+            }
+            char quote = '\'';
+            int valueStart = srcIdx + 5;
+            int valueEnd = imgTag.indexOf(quote, valueStart);
+            if (valueEnd < 0) {
+                return imgTag;
+            }
+            String src = imgTag.substring(valueStart, valueEnd);
+            String resolved = resolveImageSrc(src, baseDir);
+            return imgTag.substring(0, valueStart) + resolved + imgTag.substring(valueEnd);
+        }
+
+        int valueStart = srcIdx + 5;
+        int valueEnd = imgTag.indexOf('"', valueStart);
+        if (valueEnd < 0) {
+            return imgTag;
+        }
+        String src = imgTag.substring(valueStart, valueEnd);
+        String resolved = resolveImageSrc(src, baseDir);
+        return imgTag.substring(0, valueStart) + resolved + imgTag.substring(valueEnd);
+    }
+
+    private String resolveImageSrc(String src, File baseDir) {
+        if (src.startsWith("data:") || src.startsWith("http://") || src.startsWith("https://") || src.startsWith("file:")) {
+            return src;
+        }
+        File imageFile = new File(baseDir, src);
+        if (!imageFile.isFile()) {
+            return src;
+        }
+        try {
+            byte[] bytes = Files.readAllBytes(imageFile.toPath());
+            String mime = getImageMimeType(src);
+            return "data:" + mime + ";base64," + Base64.getEncoder().encodeToString(bytes);
+        } catch (IOException e) {
+            return src;
+        }
+    }
+
+    private String getImageMimeType(String filename) {
+        String lower = filename.toLowerCase();
+        if (lower.endsWith(".png")) return "image/png";
+        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
+        if (lower.endsWith(".gif")) return "image/gif";
+        if (lower.endsWith(".webp")) return "image/webp";
+        if (lower.endsWith(".svg")) return "image/svg+xml";
+        return "application/octet-stream";
+    }
+
+    /**
+     * Replaces emoji Unicode characters in HTML with locally bundled Twemoji SVG img tags.
+     * Characters without a matching local SVG (e.g. U+2715 ✕) are left as plain text.
+     */
+    private String processEmojis(String html) {
+        StringBuilder sb = new StringBuilder();
+        int i = 0;
+        int len = html.length();
+        boolean inTag = false;
+
+        while (i < len) {
+            char ch = html.charAt(i);
+
+            if (ch == '<') { inTag = true; sb.append(ch); i++; continue; }
+            if (ch == '>') { inTag = false; sb.append(ch); i++; continue; }
+            if (inTag) { sb.append(ch); i++; continue; }
+
+            int cp = Character.codePointAt(html, i);
+            int charCount = Character.charCount(cp);
+
+            if (isEmoji(cp)) {
+                // Consume optional variation selector U+FE0F after emoji
+                int nextI = i + charCount;
+                boolean hasVariation = nextI < len && Character.codePointAt(html, nextI) == 0xFE0F;
+                if (hasVariation) charCount += Character.charCount(0xFE0F);
+
+                String hex = Integer.toHexString(cp).toLowerCase();
+                String emojiUrl = getLocalEmojiUrl(hex);
+                if (emojiUrl != null) {
+                    String alt = new String(Character.toChars(cp));
+                    sb.append("<img class='emoji' alt='")
+                      .append(alt)
+                      .append("' src='")
+                      .append(emojiUrl)
+                      .append("'/>");
+                } else {
+                    // No local SVG (e.g. ✕ U+2715) — keep the character as text
+                    for (int j = 0; j < charCount; j++) {
+                        sb.append(html.charAt(i + j));
+                    }
+                }
+            } else {
+                for (int j = 0; j < charCount; j++) {
+                    sb.append(html.charAt(i + j));
+                }
+            }
+            i += charCount;
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Returns a data-URI for a bundled Twemoji SVG, or null if missing.
+     * JavaFX WebView blocks file:// images when HTML is loaded via loadContent(),
+     * so we embed the SVG bytes as data:image/svg+xml;base64,... instead.
+     */
+    private String getLocalEmojiUrl(String hex) {
+        if (emojiDataUriCache.containsKey(hex)) {
+            return emojiDataUriCache.get(hex);
+        }
+        java.net.URL resource = getClass().getResource("/markdownviewer/emojis/" + hex + ".svg");
+        if (resource == null) {
+            return null;
+        }
+        try (InputStream in = resource.openStream()) {
+            byte[] bytes = in.readAllBytes();
+            String dataUri = "data:image/svg+xml;base64," + Base64.getEncoder().encodeToString(bytes);
+            emojiDataUriCache.put(hex, dataUri);
+            return dataUri;
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    private boolean isEmoji(int cp) {
+        // U+2715 MULTIPLICATION X (✕) is Dingbats but Twemoji has no 2715.svg —
+        // leave it as text so close-icon docs/UI glyphs render correctly.
+        if (cp == 0x2715) return false;
+        // Misc Technical
+        if (cp >= 0x2300 && cp <= 0x23FF) return true;
+        // Enclosed Alphanumeric Supplement
+        if (cp >= 0x2460 && cp <= 0x24FF) return true;
+        // Misc Symbols
+        if (cp >= 0x2600 && cp <= 0x26FF) return true;
+        // Dingbats
+        if (cp >= 0x2700 && cp <= 0x27BF) return true;
+        // Misc Symbols and Arrows
+        if (cp >= 0x2B00 && cp <= 0x2BFF) return true;
+        // Mahjong/Domino tiles & playing cards
+        if (cp >= 0x1F000 && cp <= 0x1F02F) return true;
+        // Enclosed Alphanumeric Supplement
+        if (cp >= 0x1F100 && cp <= 0x1F1FF) return true;
+        // Enclosed Ideographic Supplement
+        if (cp >= 0x1F200 && cp <= 0x1F2FF) return true;
+        // Misc Symbols and Pictographs
+        if (cp >= 0x1F300 && cp <= 0x1F5FF) return true;
+        // Transport and Map
+        if (cp >= 0x1F680 && cp <= 0x1F6FF) return true;
+        // Supplemental Symbols and Pictographs
+        if (cp >= 0x1F900 && cp <= 0x1F9FF) return true;
+        // Symbols and Pictographs Extended-A
+        if (cp >= 0x1FA00 && cp <= 0x1FAFF) return true;
+        // Copyright / Registered
+        if (cp == 0x00A9 || cp == 0x00AE) return true;
+        return false;
+    }
 
     public static void main(String[] args) {
         launch(args);

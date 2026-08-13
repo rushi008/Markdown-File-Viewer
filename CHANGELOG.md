@@ -5,6 +5,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.3.0] - 2026-08-13
+
+### ✨ Added
+- 📷 **README screenshots** — two app screenshots (`image.png`, `image2.png`) in the Screenshots section
+- 📦 **`download_emojis.ps1`** — PowerShell script to download Twemoji v14.0.2 SVGs into `src/markdownviewer/emojis/`
+- 🖼️ **Local Twemoji bundle** — ~3,700 emoji SVGs shipped with the app (no CDN dependency)
+
+### 🐛 Fixed
+- 📸 **Local images not showing** — relative image paths (e.g. `image.png`) are now embedded as base64 data URIs so they display in JavaFX WebView loaded via `loadContent()`
+- 🖼️ **Emoji icons showing as empty boxes** — emojis are embedded as base64 data URIs from bundled Twemoji SVGs instead of blocked `file://` or CDN URLs
+- ✕ **Close icon (U+2715) broken** — excluded from emoji conversion since Twemoji has no `2715.svg`; renders as plain text instead of a missing image
+
+### 🔄 Changed
+- Emoji rendering switched from CDN / font-based approach to locally bundled Twemoji SVG data URIs
+
+---
+
 ## [1.2.0] - 2026-08-13
 
 ### ✨ Added
@@ -14,9 +31,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - 🔍 **Re-open search icon button** — small floating icon appears when search is closed; click to reopen
 - ⌨️ **Ctrl+F shortcut** — press Ctrl+F inside any document to instantly open the search bar
 - ✕ **Clear button inside sidebar search** — appears when typing; clears the search field instantly
-
-### 🐛 Fixed
-- 🖼️ **Emoji rendering** — Added `Segoe UI Emoji`, `Apple Color Emoji`, `Noto Color Emoji` fonts so emojis display correctly instead of showing as `?` boxes in WebView
 
 ---
 

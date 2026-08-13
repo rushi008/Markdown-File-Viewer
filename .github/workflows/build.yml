@@ -1,0 +1,36 @@
+name: Java CI Build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ✅ Checkout code
+        uses: actions/checkout@v4
+
+      - name: ☕ Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 📦 Install JavaFX dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y openjfx
+
+      - name: 🔨 Build with Ant
+        run: ant -noinput -buildfile build.xml jar
+
+      - name: 📤 Upload JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MarkdownViewer-jar
+          path: dist/*.jar
+          retention-days: 7

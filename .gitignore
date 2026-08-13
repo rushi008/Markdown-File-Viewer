@@ -1,0 +1,19 @@
+# NetBeans build output
+build/
+dist/
+
+# NetBeans cache/private files
+nbproject/private/
+nbproject/Makefile-*.mk
+nbproject/Package-*.bash
+
+# JavaFX SDKs (large, should not be committed)
+javafx-sdk-*/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+*.iml
+.idea/

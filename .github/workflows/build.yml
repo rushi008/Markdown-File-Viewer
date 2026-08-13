@@ -11,24 +11,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: ✅ Checkout code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: ☕ Set up Java 17
+      - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
 
-      - name: 📦 Install JavaFX dependencies
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y openjfx
+      - name: Install build tools
+        run: sudo apt-get update -qq && sudo apt-get install -y ant unzip curl
 
-      - name: 🔨 Build with Ant
+      - name: Download JavaFX SDK
+        run: |
+          JFX_VERSION=21.0.10
+          curl -fsSL -o openjfx.zip "https://download2.gluonhq.com/openjfx/${JFX_VERSION}/openjfx-${JFX_VERSION}_linux-x64_bin-sdk.zip"
+          unzip -q openjfx.zip
+          test -d "javafx-sdk-${JFX_VERSION}/lib"
+
+      - name: Build with Ant
         run: ant -noinput -buildfile build.xml jar
 
-      - name: 📤 Upload JAR artifact
+      - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
         with:
           name: MarkdownViewer-jar

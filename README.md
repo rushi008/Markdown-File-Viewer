@@ -1,6 +1,14 @@
 # 📄 Markdown File Viewer
 
+![Version](https://img.shields.io/badge/version-1.2.0-blue)
+![Java](https://img.shields.io/badge/Java-17%2B-orange)
+![JavaFX](https://img.shields.io/badge/JavaFX-21-green)
+![License](https://img.shields.io/badge/license-MIT-purple)
+
+> 📋 See [CHANGELOG.md](CHANGELOG.md) for full history of changes.
+
 A sleek, fast, and beautiful **JavaFX desktop application** for reading and navigating Markdown (`.md`) files — styled with a modern dark UI inspired by GitHub's design.
+
 
 ---
 
@@ -20,7 +28,7 @@ A sleek, fast, and beautiful **JavaFX desktop application** for reading and navi
 ## 🖥️ Screenshots
 
 > *(Add screenshots here after first run)*
-
+![alt text](image.png)
 ---
 
 ## 🛠️ Tech Stack
@@ -121,3 +129,21 @@ Pull requests are welcome! For major changes, please open an issue first.
 ## 📄 License
 
 This project is open source and available under the [MIT License](LICENSE).
+
+---
+
+## 🕓 Latest Changes
+
+### v1.2.0 — 2026-08-13
+- 🔎 In-document search bar with ▲ ▼ navigation and Ctrl+F shortcut
+- ✕ Close & 🔍 reopen search icon button
+- ✕ Clear button inside sidebar file search
+- 🖼️ Fixed emoji rendering in WebView (Segoe UI Emoji font)
+
+### v1.1.0 — 2026-08-13
+- 🔍 Sidebar search to filter open files by name
+
+### v1.0.0 — 2026-08-13
+- 🎉 Initial release with multi-file sidebar, dark theme, session restore & GitHub-styled rendering
+
+> 📋 Full details in [CHANGELOG.md](CHANGELOG.md)

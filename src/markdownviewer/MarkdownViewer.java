@@ -313,7 +313,7 @@ public class MarkdownViewer extends Application {
             String html = renderer.render(document);
 
             String styledHtml = "<!DOCTYPE html><html><head><meta charset='utf-8'><title>" + file.getName() + "</title><style>" +
-                    "body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; line-height: 1.6; color: #24292e; padding: 32px 40px; max-width: 900px; margin: 0 auto; background-color: #ffffff; }" +
+                    "body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji',Helvetica,Arial,sans-serif; line-height: 1.6; color: #24292e; padding: 32px 40px; max-width: 900px; margin: 0 auto; background-color: #ffffff; }" +
                     "h1, h2, h3 { border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; margin-top: 24px; margin-bottom: 16px; font-weight: 600; }" +
                     "h1 { font-size: 2em; } h2 { font-size: 1.5em; } h3 { font-size: 1.25em; }" +
                     "p { margin-top: 0; margin-bottom: 16px; }" +

@@ -5,6 +5,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.3.1] - 2026-08-13
+
+### 🐛 Fixed
+- 🛠️ **App failed to start on JDK 26** — `javafx.web` required the `jdk.jsobject` module, which was removed from the JDK. The project now uses JavaFX 26.0.2, which ships `jdk.jsobject.jar`.
+
+### 🔄 Changed
+- Runtime stack is now **Java 26** and **JavaFX 26.0.2** (was JavaFX 21.0.10)
+- CI build downloads JavaFX 26.0.2 and uses JDK 26
+
+---
+
 ## [1.3.0] - 2026-08-13
 
 ### ✨ Added

@@ -1,8 +1,8 @@
 # 📄 Markdown File Viewer
 
-![Version](https://img.shields.io/badge/version-1.3.0-blue)
-![Java](https://img.shields.io/badge/Java-17%2B-orange)
-![JavaFX](https://img.shields.io/badge/JavaFX-21-green)
+![Version](https://img.shields.io/badge/version-1.3.1-blue)
+![Java](https://img.shields.io/badge/Java-26-orange)
+![JavaFX](https://img.shields.io/badge/JavaFX-26-green)
 ![License](https://img.shields.io/badge/license-MIT-purple)
 
 > 📋 See [CHANGELOG.md](CHANGELOG.md) for full history of changes.
@@ -36,8 +36,8 @@ A sleek, fast, and beautiful **JavaFX desktop application** for reading and navi
 
 | Technology | Purpose |
 |---|---|
-| Java 17+ | Core language |
-| JavaFX 21 | UI framework |
+| Java 26 | Core language |
+| JavaFX 26 | UI framework |
 | CommonMark | Markdown parsing |
 | Twemoji (local) | Emoji SVG assets bundled with the app |
 | NetBeans | IDE / Build tool |
@@ -48,8 +48,8 @@ A sleek, fast, and beautiful **JavaFX desktop application** for reading and navi
 
 ### Prerequisites
 
-- Java JDK 17 or later
-- JavaFX SDK 21+ ([download here](https://openjfx.io/))
+- Java JDK 26 (JDK 24+ removed `jdk.jsobject`, which JavaFX WebView needs)
+- JavaFX SDK 26+ ([download here](https://openjfx.io/)) — includes `jdk.jsobject.jar`
 - NetBeans IDE (recommended) or any Java IDE
 
 ### Run the Project
@@ -63,9 +63,10 @@ A sleek, fast, and beautiful **JavaFX desktop application** for reading and navi
 2. **Open in NetBeans:**
    - File → Open Project → Select the `MarkdownApp` folder
 
-3. **Set up JavaFX SDK:**
-   - Go to Project Properties → Libraries
-   - Add your local `javafx-sdk/lib` folder
+3. **Set up JavaFX SDK 26.0.2:**
+   - Download the Windows SDK from [openjfx.io](https://openjfx.io/)
+   - Unzip it as `javafx-sdk-26.0.2/` in the project root (must include `lib/jdk.jsobject.jar`)
+   - In NetBeans: Project Properties → Libraries → confirm the `javafx-sdk-26.0.2/lib` JARs are listed
 
 4. **Run:**
    - Press `F6` or click the Run button
@@ -94,6 +95,7 @@ MarkdownApp/
 │       ├── MarkdownViewer.java   # Main application
 │       └── emojis/               # Bundled Twemoji SVG assets
 ├── lib/                          # CommonMark JAR dependencies
+├── javafx-sdk-26.0.2/            # JavaFX SDK (not committed; download locally)
 ├── download_emojis.ps1           # Script to download Twemoji SVGs
 ├── image.png                     # Screenshot assets for README
 ├── image2.png
@@ -142,6 +144,9 @@ This project is open source and available under the [MIT License](LICENSE).
 ---
 
 ## 🕓 Latest Changes
+
+### v1.3.1 — 2026-08-13
+- 🛠️ Switched to Java 26 + JavaFX 26.0.2 so WebView runs on JDK 26 (`jdk.jsobject` is now bundled with JavaFX)
 
 ### v1.3.0 — 2026-08-13
 - 🖼️ Fixed emoji rendering — Twemoji SVGs bundled locally and embedded as data URIs in WebView

@@ -27,7 +27,8 @@ jobs:
         run: |
           JFX_VERSION=21.0.10
           curl -fsSL -o openjfx.zip "https://download2.gluonhq.com/openjfx/${JFX_VERSION}/openjfx-${JFX_VERSION}_linux-x64_bin-sdk.zip"
-          unzip -q openjfx.zip
+          rm -rf "javafx-sdk-${JFX_VERSION}"
+          unzip -oq openjfx.zip
           test -d "javafx-sdk-${JFX_VERSION}/lib"
 
       - name: Build with Ant

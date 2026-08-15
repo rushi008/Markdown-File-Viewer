@@ -5,6 +5,65 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.5.4] - 2026-08-15
+
+### 🐛 Fixed
+- 💥 **Print preview crash** (`RTTexture.contentsUseful()` NPE) — WebView is no longer stretched to the full document height (that overflowed the GPU texture). Pages now scroll inside a single-page WebView
+
+---
+
+## [1.5.3] - 2026-08-15
+
+### 🐛 Fixed
+- 🖱️ **Options could not be changed or scrolled** — the tall print preview no longer breaks the dialog layout; the left panel now scrolls and controls respond
+- 🔤 **PDF text was too large** — print/preview now use a document font size (default 11 pt)
+
+### ✨ Added
+- 🔠 **Font size** — 9–18 pt in Print options; changing it updates the preview and the PDF
+
+---
+
+## [1.5.2] - 2026-08-15
+
+### 🐛 Fixed
+- 📄 **PDF was always 1 page** — JavaFX `WebEngine.print()` scaled the whole document onto a single sheet. Print now writes one PDF page per paper page
+- 🔢 **Preview showed "Page 1 of 1"** — page count is now `content height ÷ paper height`, so long markdown files show Page 1 of N and the arrows work
+
+---
+
+## [1.5.1] - 2026-08-15
+
+### 🐛 Fixed
+- 🖨️ **Print/Close buttons cut off** — options now scroll, the button bar stays pinned at the bottom, and the window fits the screen
+- 📄 **Preview clipped on the right** — the page is centered and clipped inside the preview pane
+
+### ✨ Added
+- 📑 **Pages** — All pages, Current page (single), or a custom range (e.g. `1-3`)
+- 📰 **Pages per sheet** — 1 (single page), 2, 4, 6, or 9
+- 📚 **Collate** and **print quality** (High / Normal / Draft)
+
+---
+
+## [1.5.0] - 2026-08-15
+
+### ✨ Added
+- 🖨️ **Print preview** — Print / Ctrl+P opens a split window: print options on the left (printer, copies, paper, orientation, color, margins, sides) and a live page preview on the right
+- ◀▶ **Page navigation** — step through preview pages, or use the mouse wheel
+
+### 🔄 Changed
+- Printing no longer jumps straight to the system dialog; you confirm from the preview window
+
+---
+
+## [1.4.0] - 2026-08-15
+
+### ✨ Added
+- 🖨️ **Print** — a Print button next to the in-document search bar opens the system print dialog and prints the rendered Markdown (same GitHub-styled layout shown in the viewer)
+- ⌨️ **Ctrl+P shortcut** — print the currently open document from the keyboard
+- 📄 **Print CSS** — page-break rules so headings, tables, and images print more cleanly
+
+---
+
 ## [1.3.1] - 2026-08-13
 
 ### 🐛 Fixed

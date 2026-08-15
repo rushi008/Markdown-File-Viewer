@@ -350,18 +350,39 @@ public class MarkdownViewer extends Application {
                     "a:hover { text-decoration: underline; }" +
                     "img:not(.emoji) { max-width: 100%; }" +
                     "hr { height: 0.25em; padding: 0; margin: 24px 0; background-color: #e1e4e8; border: 0; border-radius: 3px; }" +
+                    "@media print { " +
+                    "  body { padding: 0; max-width: none; margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; } " +
+                    "  h1, h2, h3 { page-break-after: avoid; } " +
+                    "  pre, blockquote, table, img:not(.emoji) { page-break-inside: avoid; } " +
+                    "  pre { white-space: pre-wrap; overflow: visible; } " +
+                    "} " +
                     "</style></head><body>" + resolveLocalImages(processEmojis(html), file) + "</body></html>";
 
             WebView webView = new WebView();
             WebEngine engine = webView.getEngine();
             engine.loadContent(styledHtml, "text/html");
 
+            Button printBtn = new Button("\uD83D\uDDA8 Print");
+            printBtn.setStyle(
+                    "-fx-background-color: #ffffff; " +
+                    "-fx-padding: 6 12; " +
+                    "-fx-background-radius: 8; " +
+                    "-fx-border-color: #d0d7de; " +
+                    "-fx-border-radius: 8; " +
+                    "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 3); " +
+                    "-fx-cursor: hand; " +
+                    "-fx-text-fill: #24292f; " +
+                    "-fx-font-weight: bold; " +
+                    "-fx-font-size: 13px;"
+            );
+            printBtn.setOnAction(e -> printRenderedDocument(engine));
+
             HBox searchBox = new HBox(2);
             searchBox.setAlignment(Pos.CENTER);
             searchBox.setStyle("-fx-background-color: #ffffff; -fx-padding: 4 8; -fx-background-radius: 8; -fx-border-color: #d0d7de; -fx-border-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 3);");
             searchBox.setMaxWidth(Region.USE_PREF_SIZE);
             searchBox.setMaxHeight(Region.USE_PREF_SIZE);
-            searchBox.setPickOnBounds(false);
+            searchBox.managedProperty().bind(searchBox.visibleProperty());
             
             TextField docSearchField = new TextField();
             docSearchField.setPromptText("\uD83D\uDD0D Search in document...");
@@ -374,9 +395,8 @@ public class MarkdownViewer extends Application {
             
             Button openSearchBtn = new Button("\uD83D\uDD0D");
             openSearchBtn.setStyle("-fx-background-color: #ffffff; -fx-padding: 8; -fx-background-radius: 20; -fx-border-color: #d0d7de; -fx-border-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 3); -fx-cursor: hand; -fx-text-fill: #57606a;");
-            StackPane.setAlignment(openSearchBtn, Pos.TOP_RIGHT);
-            StackPane.setMargin(openSearchBtn, new Insets(20, 40, 0, 0));
             openSearchBtn.setVisible(false);
+            openSearchBtn.managedProperty().bind(openSearchBtn.visibleProperty());
             
             openSearchBtn.setOnAction(e -> {
                 openSearchBtn.setVisible(false);
@@ -412,8 +432,15 @@ public class MarkdownViewer extends Application {
             prevBtn.setOnAction(e -> doSearchBackwards.run());
             
             searchBox.getChildren().addAll(docSearchField, prevBtn, nextBtn, closeBtn);
-            StackPane.setAlignment(searchBox, Pos.TOP_RIGHT);
-            StackPane.setMargin(searchBox, new Insets(20, 40, 0, 0));
+
+            HBox topBar = new HBox(8);
+            topBar.setAlignment(Pos.CENTER_RIGHT);
+            topBar.setMaxWidth(Region.USE_PREF_SIZE);
+            topBar.setMaxHeight(Region.USE_PREF_SIZE);
+            topBar.setPickOnBounds(false);
+            topBar.getChildren().addAll(printBtn, searchBox, openSearchBtn);
+            StackPane.setAlignment(topBar, Pos.TOP_RIGHT);
+            StackPane.setMargin(topBar, new Insets(20, 40, 0, 0));
             
             webView.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
                 if (event.isControlDown() && event.getCode() == KeyCode.F) {
@@ -421,11 +448,20 @@ public class MarkdownViewer extends Application {
                     openSearchBtn.setVisible(false);
                     docSearchField.requestFocus();
                     event.consume();
+                } else if (event.isControlDown() && event.getCode() == KeyCode.P) {
+                    printRenderedDocument(engine);
+                    event.consume();
+                }
+            });
+            topBar.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+                if (event.isControlDown() && event.getCode() == KeyCode.P) {
+                    printRenderedDocument(engine);
+                    event.consume();
                 }
             });
 
             centerContent.getChildren().clear();
-            centerContent.getChildren().addAll(webView, searchBox, openSearchBtn);
+            centerContent.getChildren().addAll(webView, topBar);
 
         } catch (Exception ex) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -436,6 +472,28 @@ public class MarkdownViewer extends Application {
         }
     }
 
+
+    /**
+     * Opens a split print-preview window (options on the left, page preview on the right).
+     */
+    private void printRenderedDocument(WebEngine engine) {
+        String html;
+        try {
+            Object result = engine.executeScript("document.documentElement.outerHTML");
+            html = result instanceof String ? (String) result : "";
+        } catch (Exception ex) {
+            html = "";
+        }
+        if (html == null || html.isBlank()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Print");
+            alert.setHeaderText("Nothing to print");
+            alert.setContentText("The document is still loading. Try again in a moment.");
+            alert.showAndWait();
+            return;
+        }
+        PrintPreviewDialog.open(primaryStage, engine, html);
+    }
 
     /**
      * Embeds local images as data URIs so they display in WebView loaded via loadContent().

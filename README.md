@@ -1,6 +1,6 @@
 # 📄 Markdown File Viewer
 
-![Version](https://img.shields.io/badge/version-1.3.1-blue)
+![Version](https://img.shields.io/badge/version-1.5.4-blue)
 ![Java](https://img.shields.io/badge/Java-26-orange)
 ![JavaFX](https://img.shields.io/badge/JavaFX-26-green)
 ![License](https://img.shields.io/badge/license-MIT-purple)
@@ -17,6 +17,7 @@ A sleek, fast, and beautiful **JavaFX desktop application** for reading and navi
 - 📂 **Open multiple `.md` files** at once via sidebar
 - 🔍 **Search open files** — filter by filename in the sidebar
 - 🔎 **In-document search** — search text inside the rendered document (Ctrl+F)
+- 🖨️ **Print preview** — split window with print options on the left (including all/current/range pages and pages-per-sheet) and a live page preview on the right
 - 💾 **Session restore** — reopens your last open files automatically on launch
 - 🎨 **GitHub-styled rendering** — clean, beautiful Markdown output
 - 🌙 **Dark sidebar UI** — modern Catppuccin-inspired theme
@@ -80,6 +81,7 @@ A sleek, fast, and beautiful **JavaFX desktop application** for reading and navi
 | Shortcut | Action |
 |---|---|
 | `Ctrl + F` | Open in-document search bar |
+| `Ctrl + P` | Open print preview |
 | `Enter` | Find next match |
 | `▲ / ▼` buttons | Navigate previous / next match |
 | `✕` button | Close search bar |
@@ -93,6 +95,7 @@ MarkdownApp/
 ├── src/
 │   └── markdownviewer/
 │       ├── MarkdownViewer.java   # Main application
+│       ├── PrintPreviewDialog.java # Split print options + page preview
 │       └── emojis/               # Bundled Twemoji SVG assets
 ├── lib/                          # CommonMark JAR dependencies
 ├── javafx-sdk-26.0.2/            # JavaFX SDK (not committed; download locally)
@@ -144,6 +147,24 @@ This project is open source and available under the [MIT License](LICENSE).
 ---
 
 ## 🕓 Latest Changes
+
+### v1.5.4 — 2026-08-15
+- 💥 Fixed print-preview crash from an oversized WebView GPU texture
+
+### v1.5.3 — 2026-08-15
+- 🖱️ Print options scroll and stay clickable; added Font size (default 11 pt) so PDF text is not oversized
+
+### v1.5.2 — 2026-08-15
+- 📄 Multi-page PDF and preview — long documents show Page 1 of N and Print to PDF keeps real page breaks
+
+### v1.5.1 — 2026-08-15
+- 🖨️ Print window layout fix — Close and Print stay visible; added All / Current / range pages and pages-per-sheet
+
+### v1.5.0 — 2026-08-15
+- 🖨️ Print preview window — options on the left, live page preview on the right (printer, copies, paper, orientation, color, margins)
+
+### v1.4.0 — 2026-08-15
+- 🖨️ Print button next to document search — prints the rendered Markdown via the system print dialog (`Ctrl+P`)
 
 ### v1.3.1 — 2026-08-13
 - 🛠️ Switched to Java 26 + JavaFX 26.0.2 so WebView runs on JDK 26 (`jdk.jsobject` is now bundled with JavaFX)
